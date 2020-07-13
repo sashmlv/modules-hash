@@ -7,7 +7,7 @@ const test = require( 'ava' ),
    sinon = require( 'sinon' ),
    TMP = path.resolve( `${ __dirname }/tmp` ),
    crypto = require( 'crypto' ),
-   { fileHash } = require( '../dist' );
+   { fileHash } = require( '../dist/node' );
 
 /* same instance like in testing module, so we can spy it */
 crypto.createHash = sinon.spy( crypto.createHash );
