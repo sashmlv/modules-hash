@@ -6,11 +6,9 @@
   "main": "dist/node/index.js",
   "browser": "dist/web/index.js",
   "scripts": {
-    "build:dev": "NODE_ENV=development webpack --config ./build/webpack.node.js --config ./build/webpack.web.js",
-    "build:prod": "NODE_ENV=production webpack --config ./build/webpack.node.js --config ./build/webpack.web.js",
-    "build:web": "NODE_ENV=development webpack --config ./build/webpack.web.js",
-    "build:node": "NODE_ENV=development webpack --config ./build/webpack.node.js",
-    "prepare": "NODE_ENV=production webpack --config ./build/webpack.node.js --config ./build/webpack.web.js",
+    "build:dev": "NODE_ENV=development webpack --config ./build/webpack.node.js && NODE_ENV=development webpack --config ./build/webpack.web.js",
+    "build:prod": "NODE_ENV=production webpack --config ./build/webpack.node.js && NODE_ENV=production webpack --config ./build/webpack.web.js",
+    "prepare": "NODE_ENV=production webpack --config ./build/webpack.node.js && NODE_ENV=production webpack --config ./build/webpack.web.js",
     "test": "npm run build:prod && ava"
   },
   "keywords": [

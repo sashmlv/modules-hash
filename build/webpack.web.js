@@ -7,24 +7,10 @@ const Webpack = require( 'webpack' ),
    NODE_ENV = process.env.NODE_ENV || 'production',
    config = require( './config' );
 
-const entry = {
-
-   index: './src/index.js',
-};
-
-const names = Object.keys( config );
-
-names.forEach( key => {
-
-   const add = config[ key ].compile && ( config[ key ].web || ! config[ key ].node );
-
-   if( add ){
-
-      entry[ key ] = `./src/${ key }.js`;
-   };
-});
-
-module.exports = {
+/*
+ * config for all modules
+ */
+const modulesConfig = {
 
    mode: NODE_ENV,
    target: 'web',
@@ -32,51 +18,90 @@ module.exports = {
 
       nodeEnv: false,
    },
-   entry,
+   entry: {},
    output: {
 
       path: DIST,
       filename: '[name].js',
-      library: 'hash',
-      libraryTarget: 'umd',
+      libraryTarget: 'window',
+      globalObject: 'this',
+   },
+};
+
+const names = Object.keys( config )
+   .filter( name => config[ name ].compile && (
+      config[ name ].web || ! config[ name ].node
+   ));
+
+names.forEach( name => {
+
+   modulesConfig.entry[ name ] = `./src/${ name }.js`;
+});
+
+const haveModules = Object.keys( modulesConfig.entry ).length;
+
+/*
+ * config only for main index file
+ */
+const indexConfig = {
+
+   mode: NODE_ENV,
+   target: 'web',
+   optimization: {
+
+      nodeEnv: false,
+   },
+   entry: {
+
+      index: './src/index.js',
+   },
+   output: {
+
+      path: DIST,
+      filename: '[name].js',
+      library:  'hash',
       globalObject: 'this',
    },
    module: {
 
-      rules: [{
+      rules: [
 
-         test: /src\/index\.js$/,
-         loader: 'imports-loader',
-         options: {
+         haveModules ? {
 
-            imports: Object.keys( config )
-               .filter( key => config[ key ].compile && ( config[ key ].web || ! config[ key ].node ))
-               .map( name => `named ./${ name } ${ name }` ),
+            test: /src\/index\.js$/,
+            loader: 'imports-loader',
+            options: {
+
+               imports: names.map( name => `named ./${ name } ${ name }` ),
+            },
+         } : undefined,
+
+         haveModules ? {
+
+            test: /src\/index\.js$/,
+            loader: 'exports-loader',
+            options: {
+
+               exports: names,
+            },
+         } : undefined,
+         {
+
+            /* remove imports and exports, will added with 'imports-loader' and 'exports-loader' */
+            test: /\/src\/index\.js$/,
+            loader: 'string-replace-loader',
+            options: {
+
+               search: /(import\s.+|export\s.+)/g,
+               replace: ''
+            },
          },
-      },{
-
-         test: /src\/index\.js$/,
-         loader: 'exports-loader',
-         options: {
-
-            exports: Object.keys( config )
-               .filter( key => config[ key ].compile && ( config[ key ].web || ! config[ key ].node )),
-         },
-      },{
-
-         /* remove imports and exports, will added with 'imports-loader' and 'exports-loader' */
-         test: /\/src\/index\.js$/,
-         loader: 'string-replace-loader',
-         options: {
-
-            search: /(import\s.+|export\s.+)/g,
-            replace: ''
-         },
-      },],
+      ].filter( _=>_ ),
    },
-   plugins: [
-
-      new CleanWebpackPlugin(),
-      new Webpack.ProgressPlugin(),
-   ],
 };
+
+module.exports = [
+
+   haveModules ? modulesConfig : undefined,
+   indexConfig,
+].filter( _=>_ );

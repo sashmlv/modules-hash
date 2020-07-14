@@ -13,16 +13,14 @@ const entry = {
    index: './src/index.js',
 };
 
-const names = Object.keys( config );
+const names = Object.keys( config )
+   .filter( name => config[ name ].compile && (
+      config[ name ].node || ! config[ name ].web
+   ));
 
-names.forEach( key => {
+names.forEach( name => {
 
-   const add = config[ key ].compile && ( config[ key ].node || ! config[ key ].web );
-
-   if( add ){
-
-      entry[ key ] = `./src/${ key }.js`;
-   };
+   entry[ name ] = `./src/${ name }.js`;
 });
 
 module.exports = {
@@ -48,40 +46,37 @@ module.exports = {
    },
    module: {
 
-      rules: [{
+      rules: [
+         {
 
-         test: /src\/index\.js$/,
-         loader: 'imports-loader',
-         options: {
+            test: /src\/index\.js$/,
+            loader: 'imports-loader',
+            options: {
 
-            imports: Object.keys( config )
-               .filter( key => config[ key ].compile )
-               .map( name => `named ./${ name } ${ name }` ),
+               imports: names.map( name => `named ./${ name } ${ name }` ),
+            },
          },
-      },{
+         {
 
-         test: /src\/index\.js$/,
-         loader: 'exports-loader',
-         options: {
+            test: /src\/index\.js$/,
+            loader: 'exports-loader',
+            options: {
 
-            exports: Object.keys( config )
-               .filter( key => config[ key ].compile ),
+               exports: names,
+            },
          },
-      },{
+         {
 
-         /* remove imports and exports, will added with 'imports-loader' and 'exports-loader' */
-         test: /\/src\/index\.js$/,
-         loader: 'string-replace-loader',
-         options: {
+            /* remove imports and exports, will added with 'imports-loader' and 'exports-loader' */
+            test: /\/src\/index\.js$/,
+            loader: 'string-replace-loader',
+            options: {
 
-            search: /(import\s.+|export\s.+)/g,
-            replace: ''
+               search: /(import\s.+|export\s.+)/g,
+               replace: ''
+            },
          },
-      },],
+      ],
    },
-   plugins: [
-
-      new CleanWebpackPlugin(),
-      new Webpack.ProgressPlugin(),
-   ],
+   plugins: [ new CleanWebpackPlugin(),],
 };
