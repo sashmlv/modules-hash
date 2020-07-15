@@ -8,9 +8,30 @@ const Webpack = require( 'webpack' ),
    NODE_ENV = process.env.NODE_ENV || 'production',
    config = require( './config' );
 
-const entry = {
+/*
+ * config for all modules
+ */
+const modulesConfig = {
 
-   index: './src/index.js',
+   mode: NODE_ENV,
+   target: 'node',
+   optimization: {
+
+      nodeEnv: false,
+   },
+   entry: {},
+   output: {
+
+      path: DIST,
+      filename: '[name].js',
+      libraryTarget: 'umd',
+	   libraryExport: 'default',
+      globalObject: 'this',
+   },
+   externals: [
+
+      nodeExternals()
+   ],
 };
 
 const names = Object.keys( config )
@@ -20,10 +41,15 @@ const names = Object.keys( config )
 
 names.forEach( name => {
 
-   entry[ name ] = `./src/${ name }.js`;
+   modulesConfig.entry[ name ] = `./src/${ name }.js`;
 });
 
-module.exports = {
+const haveModules = Object.keys( modulesConfig.entry ).length;
+
+/*
+ * config only for main index file
+ */
+const indexConfig = {
 
    mode: NODE_ENV,
    target: 'node',
@@ -31,23 +57,27 @@ module.exports = {
 
       nodeEnv: false,
    },
-   entry,
-   externals: [
+   entry: {
 
-      nodeExternals()
-   ],
+      index: './src/index.js',
+   },
    output: {
 
       path: DIST,
       filename: '[name].js',
-      library: 'hash',
+      library:  'hash',
       libraryTarget: 'umd',
       globalObject: 'this',
    },
+   externals: [
+
+      nodeExternals()
+   ],
    module: {
 
       rules: [
-         {
+
+         haveModules ? {
 
             test: /src\/index\.js$/,
             loader: 'imports-loader',
@@ -55,8 +85,9 @@ module.exports = {
 
                imports: names.map( name => `named ./${ name } ${ name }` ),
             },
-         },
-         {
+         } : undefined,
+
+         haveModules ? {
 
             test: /src\/index\.js$/,
             loader: 'exports-loader',
@@ -64,7 +95,7 @@ module.exports = {
 
                exports: names,
             },
-         },
+         } : undefined,
          {
 
             /* remove imports and exports, will added with 'imports-loader' and 'exports-loader' */
@@ -76,7 +107,12 @@ module.exports = {
                replace: ''
             },
          },
-      ],
+      ].filter( _=>_ ),
    },
-   plugins: [ new CleanWebpackPlugin(),],
 };
+
+module.exports = [
+
+   haveModules ? modulesConfig : undefined,
+   indexConfig,
+].filter( _=>_ );

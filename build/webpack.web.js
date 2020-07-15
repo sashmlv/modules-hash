@@ -60,6 +60,7 @@ const indexConfig = {
       path: DIST,
       filename: '[name].js',
       library:  'hash',
+      libraryTarget: 'umd',
       globalObject: 'this',
    },
    module: {

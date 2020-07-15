@@ -9,7 +9,7 @@ import crypto from 'crypto';
  * @param {string} encoding
  * @return {string} Return hash
  **/
-export async function fileHash( filePath, algorithm = 'md5', encoding = 'base64' ) {
+async function fileHash( filePath, algorithm = 'md5', encoding = 'base64' ) {
 
    if( ! filePath || typeof filePath !== 'string' ){
 
@@ -26,4 +26,10 @@ export async function fileHash( filePath, algorithm = 'md5', encoding = 'base64'
       .on( 'data', data => hash.update( data ))
       .on( 'end', _=> res( hash.digest( encoding )))
       .on( 'error', e => rej( e )));
+};
+
+export {
+
+   fileHash as default,
+   fileHash,
 };
