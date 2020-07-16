@@ -8,4 +8,10 @@ module.exports = {
       node: true,
       compile: true,
    },
+   stringHash: {
+
+      web: true,
+      node: true,
+      compile: true,
+   },
 };

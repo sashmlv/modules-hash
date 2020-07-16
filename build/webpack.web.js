@@ -2,6 +2,7 @@
 
 const Webpack = require( 'webpack' ),
    { CleanWebpackPlugin } = require( 'clean-webpack-plugin' ),
+   EsmWebpackPlugin = require( '@purtuga/esm-webpack-plugin' ),
    path = require( 'path' ),
    DIST = path.resolve( `${ __dirname }/../dist/web` ),
    NODE_ENV = process.env.NODE_ENV || 'production',
@@ -23,9 +24,30 @@ const modulesConfig = {
 
       path: DIST,
       filename: '[name].js',
-      libraryTarget: 'window',
-      globalObject: 'this',
+
+      /* 1 variant with global vars */
+      // libraryTarget: 'window',
+      // globalObject: 'this',
+
+      /* 2 variant with esm */
+      library: 'does_not_matter',
+      // libraryTarget: 'var',
    },
+   plugins: [
+
+      new CleanWebpackPlugin(),
+      new EsmWebpackPlugin(),
+      new Webpack.DefinePlugin({
+
+         window: 'window',
+         process: 'process',
+         crypto: 'crypto',
+      }),
+      new Webpack.IgnorePlugin({
+
+         resourceRegExp: /^crypto$/,
+      }),
+   ]
 };
 
 const names = Object.keys( config )
@@ -59,9 +81,15 @@ const indexConfig = {
 
       path: DIST,
       filename: '[name].js',
-      library:  'hash',
-      libraryTarget: 'umd',
-      globalObject: 'this',
+
+      /* 1 variant with global vars */
+      // library:  'hash',
+      // libraryTarget: 'umd',
+      // globalObject: 'this',
+
+      /* 2 variant with esm */
+      library: 'does_not_matter',
+      // libraryTarget: 'var',
    },
    module: {
 
@@ -99,6 +127,20 @@ const indexConfig = {
          },
       ].filter( _=>_ ),
    },
+   plugins: [
+
+      new EsmWebpackPlugin(),
+      new Webpack.DefinePlugin({
+
+         window: 'window',
+         process: 'process',
+         crypto: 'crypto',
+      }),
+      new Webpack.IgnorePlugin({
+
+         resourceRegExp: /^crypto$/,
+      }),
+   ]
 };
 
 module.exports = [

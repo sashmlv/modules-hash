@@ -32,6 +32,10 @@ const modulesConfig = {
 
       nodeExternals()
    ],
+   plugins: [
+
+      new CleanWebpackPlugin(),
+   ],
 };
 
 const names = Object.keys( config )
